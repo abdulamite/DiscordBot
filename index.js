@@ -73,9 +73,12 @@ client.on("messageCreate", async (message) => {
     `);
   } else if (content.includes("!pr-remove")) {
     // Because this is a queue, we remove the first PR from the queue because queues are FIFO
-    pullRequests.shift();
+    const nextPR = pullRequests.shift();
+
+    // You can do any logic here to process the `nextPR` variable like closing the PR, merging the PR, etc.
+
     message.reply(
-      `First PR removed from the queue, here is the new queue:\n${pullRequests.join(
+      `PR #${nextPR} removed from the queue, here is the new queue:\n${pullRequests.join(
         "\n"
       )}`
     );
