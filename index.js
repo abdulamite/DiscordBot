@@ -89,8 +89,6 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// Function to get all open pull requests from the repo
-// This is only used when onlyAllowRealPullRequests is set to true
 async function getPullRequestsFromRepo() {
   const response = await axios
     .get(
