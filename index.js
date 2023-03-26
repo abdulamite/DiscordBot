@@ -22,28 +22,6 @@ const onlyAllowRealPullRequests = true;
 
 // Array to store the pull requests
 let pullRequests = [];
-let queablePullRequests = [];
-
-client.on("ready", async () => {
-  const response = await axios.get(
-    `${githubApiBaseUrl}/repos/${githubOwner}/${githubRepo}/pulls`,
-    {
-      headers: {
-        Authorization: `token ${githubToken}`,
-      },
-    }
-  );
-  pullRequestsFromRepo = response.data;
-  const prList = pullRequestsFromRepo.map(function (pr) {
-    return pr.number;
-  });
-  if (prList.length === 0) {
-    console.log("No PRs found");
-    return;
-  } else {
-    queablePullRequests = [...prList];
-  }
-});
 
 client.on("messageCreate", async (message) => {
   if (message.author.bot) {
@@ -51,15 +29,12 @@ client.on("messageCreate", async (message) => {
   }
 
   const { content } = message;
-  const prListUrl = `${githubApiBaseUrl}/repos/${githubOwner}/${githubRepo}/pulls`;
 
   if (content.includes("!pr-list")) {
-    const response = await axios.get(prListUrl, {
-      headers: {
-        Authorization: `token ${githubToken}`,
-      },
-    });
-    const prList = response.data.map((pr) => `${pr.number} - ${pr.title}`);
+    const pullRequestsFromRepo = await getPullRequestsFromRepo();
+    const prList = pullRequestsFromRepo.map(
+      (pr) => `${pr.number} - ${pr.title}`
+    );
     message.reply(prList.length ? prList.join("\n") : "No PRs found");
   } else if (content.includes("!pr-add:")) {
     const prNumber = parseInt(content.split(":")[1]);
@@ -69,9 +44,14 @@ client.on("messageCreate", async (message) => {
       return;
     }
 
-    if (onlyAllowRealPullRequests && !queablePullRequests.includes(prNumber)) {
-      message.reply("Please enter a PR number from the repo");
-      return;
+    if (onlyAllowRealPullRequests) {
+      const pullRequestsFromRepo = await getPullRequestsFromRepo();
+      const pullRequestsNumbers = pullRequestsFromRepo.map((pr) => pr.number);
+
+      if (!pullRequestsNumbers.includes(prNumber)) {
+        message.reply("Please enter a PR number from the repo");
+        return;
+      }
     }
 
     if (pullRequests.includes(prNumber)) {
@@ -109,5 +89,26 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-//make sure this line is the last line
+// Function to get all open pull requests from the repo
+// This is only used when onlyAllowRealPullRequests is set to true
+async function getPullRequestsFromRepo() {
+  const response = await axios
+    .get(
+      `${githubApiBaseUrl}/repos/${githubOwner}/${githubRepo}/pulls?state=open`,
+      {
+        headers: {
+          Authorization: `token ${githubToken}`,
+        },
+      }
+    )
+    .catch((error) => {
+      console.log(error);
+    });
+  if (response) {
+    return response.data;
+  } else {
+    return [];
+  }
+}
+
 client.login(process.env.DISCORD_TOKEN);
