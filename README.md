@@ -2,7 +2,7 @@
 
 This is a Discord bot that helps manage your pull requests through Discord. By using a few simple commands you can add, remove, and list pull requests from your repo.
 
-##Prerequisites
+## Prerequisites
 Before you can run this bot, you need to create a new Discord bot on the Discord Developer Portal. You can do that here: https://discord.com/developers/applications
 
 ## Installation
